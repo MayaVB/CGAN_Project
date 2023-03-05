@@ -6,10 +6,11 @@ import math
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, ConcatDataset
 from torchvision import datasets
 import torch
 
+from dataset_loader import MnistMixup
 from generator import Generator, Discriminator
 from train import train
 
@@ -36,7 +37,7 @@ if __name__ == "__main__":
 
     # Initialize generator and discriminator
     generator = Generator(img_shape, opt.n_classes, opt.latent_dim)
-    discriminator = Discriminator(opt.n_classes,img_shape)
+    discriminator = Discriminator(opt.n_classes, img_shape)
 
     if torch.cuda.is_available():
         generator.cuda()
@@ -44,18 +45,31 @@ if __name__ == "__main__":
         # adversarial_loss.cuda()
 
     # Configure data loader
-    os.makedirs("../../data/mnist", exist_ok=True)
-    dataloader = torch.utils.data.DataLoader(
-        datasets.MNIST(
-            "../../data/mnist",
-            train=True,
-            download=True,
-            transform=transforms.Compose(
-                [transforms.Resize(opt.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-            ),
-        ),
-        batch_size=opt.batch_size,
+    # os.makedirs("../../data/mnist", exist_ok=True)
+    # dataloader = torch.utils.data.DataLoader(
+    #     datasets.MNIST(
+    #         "../../data/mnist",
+    #         train=True,
+    #         download=True,
+    #         transform=transforms.Compose(
+    #             [transforms.Resize(opt.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
+    #         ),
+    #     ),
+    #     batch_size=opt.batch_size,
+    #     shuffle=True,
+    # )
+
+    mixup_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=True, size=10000,
+                               transform=True)
+    normal_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=False, size=10000,
+                                transform=True)
+    print(len(mixup_dataset))
+    datasets = [normal_dataset, mixup_dataset]
+    datasets = ConcatDataset(datasets)
+    dataloader = DataLoader(
+        datasets,
         shuffle=True,
+        batch_size=opt.batch_size
     )
 
     # Optimizers

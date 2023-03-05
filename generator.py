@@ -7,7 +7,7 @@ class Generator(nn.Module):
     def __init__(self, img_shape, n_classes, latent_dim):
         super(Generator, self).__init__()
         self.img_shape = img_shape
-        self.label_emb = nn.Embedding(n_classes, n_classes)
+        self.label_emb = nn.Linear(n_classes, n_classes)
 
         def block(in_feat, out_feat, normalize=True):
             layers = [nn.Linear(in_feat, out_feat)]
@@ -37,7 +37,7 @@ class Discriminator(nn.Module):
     def __init__(self, n_classes, img_shape):
         super(Discriminator, self).__init__()
 
-        self.label_embedding = nn.Embedding(n_classes, n_classes)
+        self.label_embedding = nn.Linear(n_classes, n_classes)
 
         self.model = nn.Sequential(
             nn.Linear(n_classes + int(np.prod(img_shape)), 512),
@@ -55,4 +55,5 @@ class Discriminator(nn.Module):
         # Concatenate label embedding and image to produce input
         d_in = torch.cat((img.view(img.size(0), -1), self.label_embedding(labels)), -1)
         validity = self.model(d_in)
+
         return validity

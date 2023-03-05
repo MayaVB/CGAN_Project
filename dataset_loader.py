@@ -10,10 +10,11 @@ import gzip
 import numpy as np
 import torchvision.transforms as transforms
 
-image_size = 28
+image_size = 32
 
 transform = transforms.Compose(
-    [transforms.Resize(img_size),
+    [transforms.ToPILImage(),
+     transforms.Resize(image_size),
      transforms.ToTensor(),
      transforms.Normalize([0.5], [0.5])])
 
@@ -34,15 +35,18 @@ class MnistMixup(Dataset):
     def __init__(self, image_directory, to_mix=True, size=60000, transform=None):
         """
         Args:
-            csv_file (string): Path to the csv file with lables.
             image_directory (string): Directory with all the images.
             transform (callable, optional): Optional transform to be applied
                 on a sample.
         """
         self.image_directory = image_directory
         self.transform = transform
-        self.data = read_images(os.path.join(self.image_directory, "train-images-idx3-ubyte.gz"), size)
-        self.labels = read_labels(os.path.join(self.image_directory, "train-labels-idx1-ubyte.gz"), size)
+        self.data = (read_images(os.path.join(self.image_directory,
+                                              "train-images-idx3-ubyte.gz"), size))
+
+        self.labels = (read_labels(os.path.join(self.image_directory,
+                                                "train-labels-idx1-ubyte.gz"), size))
+
         self.to_mix = to_mix
         self.train = True
 
@@ -94,9 +98,11 @@ if __name__ == "__main__":
     loader = DataLoader(
         datasets,
         shuffle=True,
-        num_workers=0,
-        batch_size=1
+        num_workers=1,
+        batch_size=64
     )
+    for i, (imgs, labels) in enumerate(loader):
+        print(imgs.shape)
 
     import matplotlib.pyplot as plt
 
