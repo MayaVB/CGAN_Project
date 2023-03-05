@@ -59,10 +59,16 @@ if __name__ == "__main__":
     #     shuffle=True,
     # )
 
-    mixup_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=True, size=10000,
-                               transform=True)
-    normal_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=False, size=10000,
-                                transform=True)
+    #mixup_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=True, size=10000,
+    #                           transform=True)
+    #normal_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=False, size=10000,
+    #                            transform=True)
+
+    mixup_dataset = MnistMixup('.\\data\\MNIST', to_mix=True, size=10000, transform=True)
+    normal_dataset = MnistMixup('.\\data\\MNIST', to_mix=False, size=10000, transform=True)
+
+
+
     print(len(mixup_dataset))
     datasets = [normal_dataset, mixup_dataset]
     datasets = ConcatDataset(datasets)
