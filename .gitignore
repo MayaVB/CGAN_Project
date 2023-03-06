@@ -4,4 +4,5 @@
 
 *.png
 **/images
-*/png
+*.png
+*.pyc
