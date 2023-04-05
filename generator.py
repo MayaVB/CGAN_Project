@@ -57,3 +57,4 @@ class Discriminator(nn.Module):
         validity = self.model(d_in)
 
         return validity
+

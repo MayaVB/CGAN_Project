@@ -1,9 +1,12 @@
+import os.path
+
 import numpy as np
 import torch
 from torch.autograd import Variable
 from torchvision.utils import save_image
 
 from const import FloatTensor, LongTensor
+from metric.franchest import GanEvaluator
 
 
 def sample_image(n_row, latent_dim, generator, num_epoch):
@@ -21,7 +24,7 @@ def sample_image(n_row, latent_dim, generator, num_epoch):
 
 
 def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
-          , optimizer_G, optimizer_D):
+          , optimizer_G, optimizer_D, save_weights_directory='weights/', save_images_path="images/mixup_10000"):
     adversarial_loss = torch.nn.MSELoss()
 
     for epoch in range(n_epochs):
@@ -80,4 +83,32 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
                 % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
             )
 
-        sample_image(n_row=10, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
+        # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
+
+        eval(generator, dataloader, save_images_path, n_classes, latent_dim)
+    torch.save(generator.state_dict(), os.path.join(save_weights_directory, f"generator.pt"))
+
+
+def eval(generator, dataloader, save_images_path, n_classes, latent_dim):
+    evaluator = GanEvaluator(num_images_real=len(dataloader.dataset),
+                             num_images_fake=len(dataloader.dataset))
+    evaluator.load_all_real_imgs(real_loader=dataloader, idx_in_loader=0)
+    ################ SAVE IMAGE IN PATH ###################
+    z = Variable(FloatTensor(np.random.normal(0, 1, (n_classes ** 2, latent_dim))))
+    # Get labels ranging from 0 to n_classes for n rows
+    labels = np.array([num for _ in range(n_classes) for num in range(n_classes)])
+
+    labels = Variable(LongTensor(labels))
+    labels = torch.eye(10)[labels - 1]
+
+    gen_imgs = generator(z, labels)
+    save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
+
+    #################### METRIC!#
+    is_score_list, fid_score_list = [], []
+
+    is_mean, is_std, fid = evaluator.fill_fake_img_batch(
+        fake_batch=gen_imgs)
+
+    is_score_list.append(is_mean)
+    fid_score_list.append(fid)
