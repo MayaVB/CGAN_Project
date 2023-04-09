@@ -3,6 +3,7 @@ import os
 import numpy as np
 import math
 
+from dag import DAG
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 
@@ -66,8 +67,6 @@ if __name__ == "__main__":
 
     mixup_dataset = MnistMixup('.\\data\\MNIST', to_mix=True, size=10000, transform=True)
     normal_dataset = MnistMixup('.\\data\\MNIST', to_mix=False, size=10000, transform=True)
-
-
 
     print(len(mixup_dataset))
     datasets = [normal_dataset, mixup_dataset]

@@ -49,7 +49,7 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             gen_imgs = generator(z, gen_labels)
 
             # Loss measures generator's ability to fool the discriminator
-            validity = discriminator(gen_imgs, gen_labels)
+            validity, validity_dag = discriminator(gen_imgs, gen_labels)
             g_loss = adversarial_loss(validity, valid)
 
             g_loss.backward()
@@ -62,11 +62,11 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             optimizer_D.zero_grad()
 
             # Loss for real images
-            validity_real = discriminator(real_imgs, labels)
+            validity_real, _ = discriminator(real_imgs, labels)
             d_real_loss = adversarial_loss(validity_real, valid)
 
             # Loss for fake images
-            validity_fake = discriminator(gen_imgs.detach(), gen_labels)
+            validity_fake, _ = discriminator(gen_imgs.detach(), gen_labels)
             d_fake_loss = adversarial_loss(validity_fake, fake)
 
             # Total discriminator loss
