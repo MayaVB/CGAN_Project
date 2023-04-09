@@ -30,8 +30,9 @@ parser.add_argument("--img_size", type=int, default=32, help="size of each image
 parser.add_argument("--channels", type=int, default=1, help="number of image channels")
 parser.add_argument("--sample_interval", type=int, default=400, help="interval between image sampling")
 opt = parser.parse_args()
-print(opt)
+
 if __name__ == "__main__":
+    dataset_path = "data/MNIST"
     img_shape = (opt.channels, opt.img_size, opt.img_size)
 
     # Loss functions
@@ -45,30 +46,9 @@ if __name__ == "__main__":
         discriminator.cuda()
         # adversarial_loss.cuda()
 
-    # Configure data loader
-    # os.makedirs("../../data/mnist", exist_ok=True)
-    # dataloader = torch.utils.data.DataLoader(
-    #     datasets.MNIST(
-    #         "../../data/mnist",
-    #         train=True,
-    #         download=True,
-    #         transform=transforms.Compose(
-    #             [transforms.Resize(opt.img_size), transforms.ToTensor(), transforms.Normalize([0.5], [0.5])]
-    #         ),
-    #     ),
-    #     batch_size=opt.batch_size,
-    #     shuffle=True,
-    # )
+    mixup_dataset = MnistMixup(dataset_path, to_mix=True, size=10000, transform=True)
+    normal_dataset = MnistMixup(dataset_path, to_mix=False, size=10000, transform=True)
 
-    #mixup_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=True, size=10000,
-    #                           transform=True)
-    #normal_dataset = MnistMixup(r"/home/aharrar/PycharmProjects/Dataset_torch/mnist", to_mix=False, size=10000,
-    #                            transform=True)
-
-    mixup_dataset = MnistMixup('.\\data\\MNIST', to_mix=True, size=10000, transform=True)
-    normal_dataset = MnistMixup('.\\data\\MNIST', to_mix=False, size=10000, transform=True)
-
-    print(len(mixup_dataset))
     datasets = [normal_dataset, mixup_dataset]
     datasets = ConcatDataset(datasets)
     dataloader = DataLoader(
