@@ -86,7 +86,6 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
         # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
 
         eval(generator, dataloader, save_images_path, n_classes, latent_dim)
-
     torch.save(generator.state_dict(), os.path.join(save_weights_directory, f"generator.pt"))
 
 
