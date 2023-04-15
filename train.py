@@ -27,6 +27,7 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
           , optimizer_G, optimizer_D, save_weights_directory='weights/', save_images_path="images/mixup_10000"):
     adversarial_loss = torch.nn.MSELoss()
 
+    d_loss_list = []
     for epoch in range(n_epochs):
         for i, (imgs, labels) in enumerate(dataloader):
             batch_size = imgs.shape[0]
@@ -86,6 +87,8 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
         # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
 
         eval(generator, dataloader, save_images_path, n_classes, latent_dim)
+        d_loss_list.append(d_loss)
+
     torch.save(generator.state_dict(), os.path.join(save_weights_directory, f"generator.pt"))
 
 
@@ -93,6 +96,7 @@ def eval(generator, dataloader, save_images_path, n_classes, latent_dim):
     evaluator = GanEvaluator(num_images_real=len(dataloader.dataset),
                              num_images_fake=len(dataloader.dataset))
     evaluator.load_all_real_imgs(real_loader=dataloader, idx_in_loader=0)
+
     ################ SAVE IMAGE IN PATH ###################
     z = Variable(FloatTensor(np.random.normal(0, 1, (n_classes ** 2, latent_dim))))
     # Get labels ranging from 0 to n_classes for n rows
