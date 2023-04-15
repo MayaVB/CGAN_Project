@@ -103,9 +103,10 @@ class GanEvaluator(object):
         real_batch = normalize(real_batch)
         real_batch = real_batch.type(torch.FloatTensor).to(self.device)
 
-        _, _, H, W = real_batch.shape
-        if H < self.min_resolution or W < self.min_resolution:
-            real_batch = self.upsample(real_batch)
+        _, C, H, W = real_batch.shape
+        if H < self.min_resolution or W < self.min_resolution and C==1:
+            real_batch = self.upsample(real_batch).repeat(1,3,1,1)
+
 
         # Get activations.
         with torch.no_grad():
