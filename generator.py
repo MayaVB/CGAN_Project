@@ -51,12 +51,12 @@ class Discriminator(nn.Module):
             nn.Linear(512, 1),
         )
 
-        self.linear = nn.Linear(32, 1)
-        self.n_augments = n_augments
-        self.linears_dag = []
-        for i in range(self.n_augments):
-            self.linears_dag.append(nn.Linear(32, 1))
-        self.linears_dag = nn.ModuleList(self.linears_dag)
+        #self.linear = nn.Linear(32, 1)
+        #self.n_augments = n_augments
+        #self.linears_dag = []
+        #for i in range(self.n_augments):
+        #    self.linears_dag.append(nn.Linear(32, 1))
+        #self.linears_dag = nn.ModuleList(self.linears_dag)
 
 
     def forward(self, img, labels):
@@ -65,9 +65,10 @@ class Discriminator(nn.Module):
         validity = self.model(d_in)
 
         # dag
-        feature = validity.view(-1, 32)
-        outputs_dag = []
-        for i in range(self.n_augments):
-            outputs_dag.append(self.linears_dag[i](feature))
+        #feature = validity.view(-1, 32)
+        #outputs_dag = []
+        #for i in range(self.n_augments):
+        #    outputs_dag.append(self.linears_dag[i](feature))
 
-        return validity, outputs_dag
+        #return validity, outputs_dag
+        return validity
