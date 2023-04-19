@@ -59,6 +59,8 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     g_loss_list = []
 
     for epoch in range(n_epochs):
+        d_loss_agg = 0
+        g_loss_agg = 0
         for i, (imgs, labels) in enumerate(dataloader):
             batch_size = imgs.shape[0]
 
@@ -114,13 +116,20 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             generated_images.append(gen_imgs.detach().cpu().numpy())
             real_images.append(real_imgs.cpu().numpy())
 
-            # print(
-            #    "[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-            #    % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
-            # )
+            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
+               % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item()))
 
-            d_loss_list.append(d_loss)
-            g_loss_list.append(g_loss)
+            #d_loss_list.append(d_loss.detach().numpy())
+            d_loss_agg += d_loss.item()
+
+            #g_loss_list.append(g_loss.detach().numpy())
+            g_loss_agg += g_loss.item()
+
+        d_loss_agg /= i
+        d_loss_list.append(d_loss_agg)
+
+        g_loss_agg /= i
+        g_loss_list.append(g_loss_agg)
 
         # FID calculation
         fid_score = calculate_fid_score_epoch(generated_images, real_images)
@@ -135,7 +144,8 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
 
     # plot loss vs epoch
     plt.figure()
-    plt.plot(d_loss_list, linewidth=3, color='blue', label='discriminator loss vs epoch')
+    plt.plot(d_loss_list, linewidth=3, color='blue')
+    plt.title('discriminator loss vs epoch')
     plt.xlabel('epoch', fontsize=12)
     plt.ylabel('discriminator loss', fontsize=12)
     plt.legend()
@@ -143,7 +153,8 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     plt.savefig('discriminator_loss.png')
 
     plt.figure()
-    plt.plot(d_loss_list, linewidth=3, color='blue', label='generator loss vs epoch')
+    plt.plot(d_loss_list, linewidth=3, color='blue')
+    plt.title('generator loss vs epoch')
     plt.xlabel('epoch', fontsize=12)
     plt.ylabel('generator loss', fontsize=12)
     plt.legend()
