@@ -1,4 +1,4 @@
-from torch.autograd import Variable
+import os.path
 import numpy as np
 import torch
 from scipy.linalg import sqrtm
@@ -130,7 +130,8 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
 
 def eval(generator, dataloader, save_images_path, n_classes, latent_dim):
     evaluator = GanEvaluator(num_images_real=len(dataloader.dataset),
-                             num_images_fake=len(dataloader.dataset))
+                             num_images_fake=n_classes ** 2)
+
     evaluator.load_all_real_imgs(real_loader=dataloader, idx_in_loader=0)
 
     # SAVE IMAGE IN PATH #

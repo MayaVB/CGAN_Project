@@ -34,7 +34,7 @@ class Generator(nn.Module):
 
 
 class Discriminator(nn.Module):
-    def __init__(self, n_classes, img_shape):
+    def __init__(self, n_classes, img_shape, n_augments=1):
         super(Discriminator, self).__init__()
 
         self.label_embedding = nn.Linear(n_classes, n_classes)
@@ -51,10 +51,24 @@ class Discriminator(nn.Module):
             nn.Linear(512, 1),
         )
 
+        #self.linear = nn.Linear(32, 1)
+        #self.n_augments = n_augments
+        #self.linears_dag = []
+        #for i in range(self.n_augments):
+        #    self.linears_dag.append(nn.Linear(32, 1))
+        #self.linears_dag = nn.ModuleList(self.linears_dag)
+
+
     def forward(self, img, labels):
         # Concatenate label embedding and image to produce input
         d_in = torch.cat((img.view(img.size(0), -1), self.label_embedding(labels)), -1)
         validity = self.model(d_in)
 
-        return validity
+        # dag
+        #feature = validity.view(-1, 32)
+        #outputs_dag = []
+        #for i in range(self.n_augments):
+        #    outputs_dag.append(self.linears_dag[i](feature))
 
+        #return validity, outputs_dag
+        return validity

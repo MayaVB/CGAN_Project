@@ -3,6 +3,7 @@ import os
 import numpy as np
 import math
 
+from dag import DAG
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 import pickle
