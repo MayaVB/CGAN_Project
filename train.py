@@ -6,6 +6,7 @@ from const import FloatTensor, LongTensor
 from metric.franchest import GanEvaluator
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
+from torch.autograd import Variable
 
 
 def calculate_fid_score_epoch(generated_images, real_images, batch_size=32, device="cuda"):
