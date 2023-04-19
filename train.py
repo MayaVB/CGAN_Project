@@ -7,7 +7,7 @@ from metric.franchest import GanEvaluator
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 from torch.autograd import Variable
-
+import matplotlib.pyplot as plt
 
 def calculate_fid_score_epoch(generated_images, real_images, batch_size=32, device="cuda"):
     # Concatenate generated and real images into numpy arrays
@@ -55,6 +55,9 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     generated_images = []
     real_images = []
     fid_score_list = []
+    d_loss_list = []
+    g_loss_list = []
+
     for epoch in range(n_epochs):
         for i, (imgs, labels) in enumerate(dataloader):
             batch_size = imgs.shape[0]
@@ -116,14 +119,37 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             #    % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item())
             # )
 
+            d_loss_list.append(d_loss)
+            g_loss_list.append(g_loss)
+
         # FID calculation
         fid_score = calculate_fid_score_epoch(generated_images, real_images)
         # print("FID score: ", fid_score)
         fid_score_list.append(fid_score)
 
+        # save loss
+
     # round(batch_size * 0.25)
     print("100% FID score is: ", sum(fid_score_list) / len(fid_score_list))
     print("25% FID score is: ", sum(fid_score_list[0:4]) / 5)
+
+    # plot loss vs epoch
+    plt.figure()
+    plt.plot(d_loss_list, linewidth=3, color='blue', label='discriminator loss vs epoch')
+    plt.xlabel('epoch', fontsize=12)
+    plt.ylabel('discriminator loss', fontsize=12)
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('discriminator_loss.png')
+
+    plt.figure()
+    plt.plot(d_loss_list, linewidth=3, color='blue', label='generator loss vs epoch')
+    plt.xlabel('epoch', fontsize=12)
+    plt.ylabel('generator loss', fontsize=12)
+    plt.legend()
+    plt.grid(True)
+    plt.savefig('generator_loss.png')
+
 
     # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
     # eval(generator, dataloader, save_images_path, n_classes, latent_dim)
