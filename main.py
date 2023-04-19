@@ -5,6 +5,7 @@ import math
 
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
+import pickle
 
 from torch.utils.data import DataLoader, ConcatDataset
 from torchvision import datasets
@@ -18,7 +19,7 @@ os.makedirs("images", exist_ok=True)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--n_epochs", type=int, default=20, help="number of epochs of training")
-parser.add_argument("--batch_size", type=int, default=64, help="size of the batches")
+parser.add_argument("--batch_size", type=int, default=32, help="size of the batches")
 parser.add_argument("--lr", type=float, default=0.0002, help="adam: learning rate")
 parser.add_argument("--b1", type=float, default=0.5, help="adam: decay of first order momentum of gradient")
 parser.add_argument("--b2", type=float, default=0.999, help="adam: decay of first order momentum of gradient")
@@ -48,17 +49,21 @@ if __name__ == "__main__":
     mixup_dataset = MnistMixup(dataset_path, to_mix=True, size=10000, transform=True)
     normal_dataset = MnistMixup(dataset_path, to_mix=False, size=10000, transform=True)
 
-    datasets = [normal_dataset, mixup_dataset]
-    datasets = ConcatDataset(datasets)
-    dataloader = DataLoader(
-        datasets,
-        shuffle=True,
-        batch_size=opt.batch_size
-    )
-
     # Optimizers
     optimizer_G = torch.optim.Adam(generator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
     optimizer_D = torch.optim.Adam(discriminator.parameters(), lr=opt.lr, betas=(opt.b1, opt.b2))
 
-    train(opt.n_epochs, opt.n_classes, opt.latent_dim,
-          dataloader, generator, discriminator, optimizer_G, optimizer_D)
+    # Augmentation Run
+    print("Starting Augmentation Run")
+    datasets = [normal_dataset, mixup_dataset]
+    datasets = ConcatDataset(datasets)
+
+    train(opt.n_epochs, opt.n_classes, opt.latent_dim, DataLoader(datasets, shuffle=True, batch_size=opt.batch_size),
+          generator, discriminator, optimizer_G, optimizer_D)
+
+    # Baseline run
+    print("Starting Baseline Run")
+    datasets = normal_dataset
+
+    train(opt.n_epochs, opt.n_classes, opt.latent_dim, DataLoader(datasets, shuffle=True, batch_size=opt.batch_size),
+          generator, discriminator, optimizer_G, optimizer_D)
