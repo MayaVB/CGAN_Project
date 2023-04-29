@@ -3,11 +3,13 @@ import numpy as np
 import torch
 from scipy.linalg import sqrtm
 from const import FloatTensor, LongTensor
-from metric.franchest import GanEvaluator
 import torchvision.transforms as transforms
 from torchvision.utils import save_image
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
+
+from metric.franchest import Franchest
+
 
 def calculate_fid_score_epoch(generated_images, real_images, batch_size=32, device="cuda"):
     # Concatenate generated and real images into numpy arrays
@@ -49,15 +51,14 @@ def sample_image(n_row, latent_dim, generator, num_epoch):
 
 
 def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
-          ,optimizer_G, optimizer_D, save_weights_directory='weights/', save_images_path="images/mixup_10000"):
-
+          , optimizer_G, optimizer_D, save_weights_directory='inseption_weights/', save_images_path="images/mixup_10000"):
     adversarial_loss = torch.nn.MSELoss()
     generated_images = []
     real_images = []
     fid_score_list = []
     d_loss_list = []
     g_loss_list = []
-
+    franchest = Franchest()
     for epoch in range(n_epochs):
         d_loss_agg = 0
         g_loss_agg = 0
@@ -117,13 +118,15 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             real_images.append(real_imgs.cpu().numpy())
 
             print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-               % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item()))
+                  % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item()))
 
-            #d_loss_list.append(d_loss.detach().numpy())
+            # d_loss_list.append(d_loss.detach().numpy())
             d_loss_agg += d_loss.item()
 
-            #g_loss_list.append(g_loss.detach().numpy())
+            # g_loss_list.append(g_loss.detach().numpy())
             g_loss_agg += g_loss.item()
+
+            eval(generator, imgs, save_images_path, n_classes, latent_dim, franchest)
 
         d_loss_agg /= i
         d_loss_list.append(d_loss_agg)
@@ -161,17 +164,10 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     plt.grid(True)
     plt.savefig('generator_loss.png')
 
-
     # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
-    # eval(generator, dataloader, save_images_path, n_classes, latent_dim)
 
 
-def eval(generator, dataloader, save_images_path, n_classes, latent_dim):
-    evaluator = GanEvaluator(num_images_real=len(dataloader.dataset),
-                             num_images_fake=n_classes ** 2)
-
-    evaluator.load_all_real_imgs(real_loader=dataloader, idx_in_loader=0)
-
+def eval(generator, images_real, save_images_path="", n_classes=10, latent_dim=10, franchest=None):
     # SAVE IMAGE IN PATH #
     z = Variable(FloatTensor(np.random.normal(0, 1, (n_classes ** 2, latent_dim))))
 
@@ -182,12 +178,10 @@ def eval(generator, dataloader, save_images_path, n_classes, latent_dim):
     labels = torch.eye(10)[labels - 1]
 
     gen_imgs = generator(z, labels)
-    save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
+    score = franchest.compute_fid(gen_imgs, images_real)
+    print(score)
+
+    # save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
 
     # METRIC!#
     is_score_list, fid_score_list = [], []
-
-    is_mean, is_std, fid = evaluator.fill_fake_img_batch(fake_batch=gen_imgs)
-
-    is_score_list.append(is_mean)
-    fid_score_list.append(fid)
