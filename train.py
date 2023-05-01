@@ -62,6 +62,7 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     for epoch in range(n_epochs):
         d_loss_agg = 0
         g_loss_agg = 0
+        fid_score = 0
         for i, (imgs, labels) in enumerate(dataloader):
             batch_size = imgs.shape[0]
 
@@ -126,8 +127,10 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             # g_loss_list.append(g_loss.detach().numpy())
             g_loss_agg += -g_loss.item()
 
-            fid_score = eval(generator, imgs, save_images_path, n_classes, latent_dim, franchest)
+            curr_fid_score = eval(generator, imgs, save_images_path, n_classes, latent_dim, franchest)
+            fid_score += curr_fid_score.item()
 
+        fid_score /= i
         d_loss_agg /= i
         d_loss_list.append(d_loss_agg)
 
@@ -137,7 +140,7 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
         # FID calculation
         # fid_score = calculate_fid_score_epoch(generated_images, real_images)
         # print("FID score: ", fid_score)
-        fid_score_list.append(fid_score.item())
+        fid_score_list.append(fid_score)
 
         # save loss
 
