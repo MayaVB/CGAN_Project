@@ -2,6 +2,7 @@ import argparse
 import os
 import numpy as np
 import math
+import copy
 
 from dag import DAG
 import torchvision.transforms as transforms
@@ -41,6 +42,7 @@ if __name__ == "__main__":
     # Initialize generator and discriminator
     generator = Generator(img_shape, opt.n_classes, opt.latent_dim)
     discriminator = Discriminator(opt.n_classes, img_shape)
+    discriminator_orig = copy.deepcopy(discriminator)
 
     if torch.cuda.is_available():
         generator.cuda()
@@ -64,7 +66,9 @@ if __name__ == "__main__":
 
     # Baseline run
     print("Starting Baseline Run")
-    datasets = normal_dataset
+
+    datasets = [normal_dataset, normal_dataset]
+    datasets = ConcatDataset(datasets)
 
     train(opt.n_epochs, opt.n_classes, opt.latent_dim, DataLoader(datasets, shuffle=True, batch_size=opt.batch_size),
-          generator, discriminator, optimizer_G, optimizer_D)
+          generator, discriminator_orig, optimizer_G, optimizer_D)
