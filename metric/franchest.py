@@ -13,7 +13,7 @@ from metric.inseption import train, Net
 class Franchest:
     def __init__(self, to_train=False):
         self.model = Net()
-        PATH = "/home/aharrar/PycharmProjects/CGAN_Project/metric/inseption_weights/inseption.pt"
+        PATH = "metric/inseption_weights/inseption.pt"
         optimizer = optim.SGD(self.model.parameters(), lr=0.01, momentum=0.5)
         if to_train:
             train(30, self.model, optimizer)
