@@ -4,7 +4,7 @@ import torch
 from scipy.linalg import sqrtm
 from const import FloatTensor, LongTensor
 import torchvision.transforms as transforms
-from torchvision.utils import save_image
+from torchvision.utils import save_image, make_grid
 from torch.autograd import Variable
 import matplotlib.pyplot as plt
 
@@ -142,7 +142,6 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
         # print("FID score: ", fid_score)
         fid_score_list.append(fid_score)
 
-        # save loss
 
     # round(batch_size * 0.25)
     print("100% FID score is: ", sum(fid_score_list) / len(fid_score_list))
@@ -184,9 +183,9 @@ def eval(generator, images_real, save_images_path="", n_classes=10, latent_dim=1
     score = franchest.compute_fid(gen_imgs, images_real)
     #print(score)
 
-    return score
+    #save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
 
-    # save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
+    return score
 
     # METRIC!#
     is_score_list, fid_score_list = [], []
