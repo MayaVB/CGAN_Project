@@ -63,7 +63,11 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
         d_loss_agg = 0
         g_loss_agg = 0
         fid_score = 0
+
         for i, (imgs, labels) in enumerate(dataloader):
+            #if i % 4 == 0:
+            #    continue
+
             batch_size = imgs.shape[0]
 
             # Adversarial ground truths
@@ -118,8 +122,8 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
             generated_images.append(gen_imgs.detach().cpu().numpy())
             real_images.append(real_imgs.cpu().numpy())
 
-            print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
-                  % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item()))
+            # print("[Epoch %d/%d] [Batch %d/%d] [D loss: %f] [G loss: %f]"
+            #       % (epoch, n_epochs, i, len(dataloader), d_loss.item(), g_loss.item()))
 
             # d_loss_list.append(d_loss.detach().numpy())
             d_loss_agg += -d_loss.item()
@@ -144,8 +148,7 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
 
 
     # round(batch_size * 0.25)
-    print("100% FID score is: ", sum(fid_score_list) / len(fid_score_list))
-    print("25% FID score is: ", sum(fid_score_list[0:4]) / 5)
+    print("FID score is: ", sum(fid_score_list) / len(fid_score_list))
 
     # plot loss vs epoch
     plt.figure()
@@ -166,7 +169,7 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     plt.grid(True)
     plt.savefig('generator_loss.png')
 
-    # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
+    sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
 
 
 def eval(generator, images_real, save_images_path="", n_classes=10, latent_dim=10, franchest=None):
