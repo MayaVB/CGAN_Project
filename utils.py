@@ -2,6 +2,35 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 
+import matplotlib.pyplot as plt
+
+
+def plot_data(x_values, y_values, title=None, xlabel=None, ylabel=None):
+    """
+    Plots the given data using matplotlib.
+
+    :param x_values: A list of x-values.
+    :param y_values: A list of y-values.
+    :param title: Optional title for the plot.
+    :param xlabel: Optional label for the x-axis.
+    :param ylabel: Optional label for the y-axis.
+    """
+
+    # Plot the data
+    plt.plot(x_values, y_values, 'bo')
+
+    # Set the title and axis labels (if provided)
+    if title:
+        plt.title(title)
+    if xlabel:
+        plt.xlabel(xlabel)
+    if ylabel:
+        plt.ylabel(ylabel)
+
+    # Show the plot
+    plt.show()
+
+
 def rotation(x, degs):
     x_rot = []
     for deg in degs:
