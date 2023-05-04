@@ -148,22 +148,12 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
 
     # plot loss vs epoch
     plt.figure()
-    plt.plot(d_loss_list, linewidth=3, color='blue')
-    plt.title('discriminator loss vs epoch')
-    plt.xlabel('epoch', fontsize=12)
-    plt.ylabel('discriminator loss', fontsize=12)
+    plt.plot(d_loss_list, linewidth=3, color='blue', label='d_loss')
+    plt.plot(g_loss_list, linewidth=3, color='orange', label='g_loss')
     plt.legend()
     plt.grid(True)
-    plt.savefig('discriminator_loss.png')
-
-    plt.figure()
-    plt.plot(d_loss_list, linewidth=3, color='blue')
-    plt.title('generator loss vs epoch')
-    plt.xlabel('epoch', fontsize=12)
-    plt.ylabel('generator loss', fontsize=12)
-    plt.legend()
-    plt.grid(True)
-    plt.savefig('generator_loss.png')
+    plt.xlabel('epochs', fontsize=12)
+    plt.savefig('d_loss_and_g_loss.png')
 
     # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
 
