@@ -1,8 +1,6 @@
-import os.path
 import numpy as np
 import torch
 from torchmetrics import MeanSquaredLogError
-from scipy.linalg import sqrtm
 from const import FloatTensor, LongTensor
 import torchvision.transforms as transforms
 from torchvision.utils import save_image, make_grid
@@ -13,29 +11,23 @@ from metric.franchest import Franchest
 from utils import plot_data
 
 
-def calculate_fid_score_epoch(generated_images, real_images, batch_size=32, device="cuda"):
-    # Concatenate generated and real images into numpy arrays
-    gen_imgs = np.concatenate(generated_images, axis=0)
-    real_imgs = np.concatenate(real_images, axis=0)
+def eval(generator, images_real, save_images_path="", n_classes=10, latent_dim=10, franchest=None):
+    # SAVE IMAGE IN PATH #
+    z = Variable(FloatTensor(np.random.normal(0, 1, (n_classes ** 2, latent_dim))))
 
-    # Rescale pixel values to [0, 1] range
-    gen_imgs = (gen_imgs + 1) / 2
-    real_imgs = (real_imgs + 1) / 2
+    # Get labels ranging from 0 to n_classes for n rows
+    labels = np.array([num for _ in range(n_classes) for num in range(n_classes)])
 
-    # Calculate mu_gen and mu_real
-    mu_gen = np.mean(gen_imgs, axis=0)
-    mu_real = np.mean(real_imgs, axis=0)
+    labels = Variable(LongTensor(labels))
+    labels = torch.eye(10)[labels - 1]
 
-    # Calculate cov_gen and cov_real
-    cov_gen = np.cov(gen_imgs.reshape(-1, gen_imgs.shape[-1]), rowvar=False)
-    cov_real = np.cov(real_imgs.reshape(-1, real_imgs.shape[-1]), rowvar=False)
+    gen_imgs = generator(z, labels)
+    score = franchest.compute_fid(gen_imgs, images_real)
+    # print(score)
 
-    cov_mean, _ = sqrtm(np.dot(cov_gen, cov_real), disp=False)
+    #save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
 
-    # calculate fid score
-    fid_score = np.sum((mu_gen - mu_real) ** 2) + np.trace(cov_gen + cov_real - 2 * cov_mean)
-
-    return fid_score
+    return score
 
 
 def sample_image(n_row, latent_dim, generator, num_epoch):
@@ -49,7 +41,8 @@ def sample_image(n_row, latent_dim, generator, num_epoch):
     labels = torch.eye(10)[labels - 1]
 
     gen_imgs = generator(z, labels)
-    save_image(gen_imgs.data, f"images/batch_{num_epoch}.png", nrow=n_row, normalize=True)
+
+    save_image(gen_imgs.data, f"images/epoch_num_{num_epoch}.png", nrow=n_row, normalize=True)
 
 
 def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
@@ -135,7 +128,6 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
 
         fid_score /= i
         fid_score_list.append(fid_score)
-        # fid_score = calculate_fid_score_epoch(generated_images, real_images)
         # print("FID score: ", fid_score)
 
         d_loss_agg /= i
@@ -155,24 +147,6 @@ def train(n_epochs, n_classes, latent_dim, dataloader, generator, discriminator
     plt.xlabel('epochs', fontsize=12)
     plt.savefig('d_loss_and_g_loss.png')
 
-    # sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
+    sample_image(n_row=n_classes, latent_dim=latent_dim, generator=generator, num_epoch=epoch)
 
-
-def eval(generator, images_real, save_images_path="", n_classes=10, latent_dim=10, franchest=None):
-    # SAVE IMAGE IN PATH #
-    z = Variable(FloatTensor(np.random.normal(0, 1, (n_classes ** 2, latent_dim))))
-
-    # Get labels ranging from 0 to n_classes for n rows
-    labels = np.array([num for _ in range(n_classes) for num in range(n_classes)])
-
-    labels = Variable(LongTensor(labels))
-    labels = torch.eye(10)[labels - 1]
-
-    gen_imgs = generator(z, labels)
-    score = franchest.compute_fid(gen_imgs, images_real)
-    # print(score)
-
-    #save_image(gen_imgs.data, save_images_path, nrow=n_classes, normalize=True)
-
-    return score
 
